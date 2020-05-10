@@ -1,2 +1,5 @@
 BIN
 DIST
+*.ppu
+*.o
+*.s

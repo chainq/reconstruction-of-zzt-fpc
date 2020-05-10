@@ -23,6 +23,9 @@
 	SOFTWARE.
 }
 
+{$if not defined(MSDOS) or defined(GO32v2)}
+{$define NOPRINTER}
+{$endif}
 {$I-}
 unit TxtWind;
 
@@ -77,7 +80,7 @@ interface
 	procedure TextWindowInit(x, y, width, height: integer);
 
 implementation
-uses Crt, Input, Printer;
+uses vidCrt, Input{$IFNDEF NOPRINTER}, Printer{$ENDIF};
 
 function UpCaseString(input: string): string;
 	var
@@ -232,6 +235,7 @@ procedure TextWindowPrint(var state: TTextWindowState);
 		iLine, iChar: integer;
 		line: string;
 	begin
+{$ifndef NOPRINTER}
 		with state do begin
 			Rewrite(Lst);
 			for iLine := 1 to LineCount do begin
@@ -266,6 +270,7 @@ procedure TextWindowPrint(var state: TTextWindowState);
 			Write(Lst, Chr(12) { form feed });
 			Close(Lst);
 		end;
+{$endif NOPRINTER}
 	end;
 
 procedure TextWindowSelect(var state: TTextWindowState; hyperlinkAsSelect, viewingFile: boolean);

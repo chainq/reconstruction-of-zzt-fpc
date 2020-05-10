@@ -26,7 +26,7 @@
 {$I-}
 {$M 49152,163840,655360}
 program ZZT;
-uses Crt, Dos, Video, Keys, Sounds, Input, TxtWind, GameVars, Elements, Editor, Oop, Game;
+uses vidCrt, Dos, zztVideo, Keys, Sounds, Input, TxtWind, GameVars, Elements, Editor, Oop, Game;
 
 procedure ParseArguments;
 	var
@@ -179,7 +179,9 @@ begin
 	SoundClearQueue;
 
 	VideoUninstall;
+{$if defined(MSDOS) or defined(GO32V2)}
 	Port[PORT_CGA_PALETTE] := 0;
+{$endif}
 	TextAttr := InitialTextAttr;
 	ClrScr;
 

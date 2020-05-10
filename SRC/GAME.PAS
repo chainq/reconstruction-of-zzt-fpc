@@ -1175,10 +1175,12 @@ procedure GameUpdateSidebar;
 			else
 				VideoWriteText(65, 15, $1F, ' Be noisy');
 
+{$if defined(MSDOS) or defined(GO32V2)}
 			if DebugEnabled then begin
 				Str(MemAvail, numStr);
 				VideoWriteText(69, 4, $1E, 'm' + numStr + ' ');
 			end;
+{$endif}
 		end;
 	end;
 

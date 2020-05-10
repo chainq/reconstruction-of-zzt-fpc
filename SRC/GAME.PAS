@@ -107,7 +107,7 @@ const
 	LineChars: string[16] = #249#208#210#186#181#188#187#185#198#200#201#204#205#202#203#206;
 
 implementation
-uses Dos, Crt, Video, Sounds, Input, Elements, Editor, Oop;
+uses Dos, vidCrt, zztVideo, Sounds, Input, Elements, Editor, Oop;
 
 procedure SidebarClearLine(y: integer);
 	begin
@@ -187,6 +187,7 @@ procedure BoardClose;
 		AdvancePointer(ptr, SizeOf(Board.Info));
 
 		Move(Board.StatCount, ptr^, SizeOf(Board.StatCount));
+		PWord(ptr)^:=NToLE(PWord(ptr)^);
 		AdvancePointer(ptr, SizeOf(Board.StatCount));
 
 		for ix := 0 to Board.StatCount do begin
@@ -198,9 +199,19 @@ procedure BoardClose;
 					end;
 				end;
 				Move(Board.Stats[ix], ptr^, SizeOf(TStat));
+				with TStat(ptr^) do begin
+					StepX:=NToLE(StepX);
+					StepY:=NToLE(StepY);
+					Cycle:=NToLE(Cycle);
+					Follower:=NToLE(Follower);
+					Leader:=NToLE(Leader);
+					DataPos:=NToLE(DataPos);
+					DataLen:=NToLE(DataLen);
+				end;
 				AdvancePointer(ptr, SizeOf(TStat));
 				if DataLen > 0 then begin
 					Move(Data^, ptr^, DataLen);
+					PWord(ptr)^:=NToLE(PWord(ptr)^);
 					FreeMem(Data, DataLen);
 					AdvancePointer(ptr, DataLen);
 				end;
@@ -248,12 +259,20 @@ procedure BoardOpen(boardId: integer);
 		AdvancePointer(ptr, SizeOf(Board.Info));
 
 		Move(ptr^, Board.StatCount, SizeOf(Board.StatCount));
+		Board.StatCount:=LEToN(Board.StatCount);
 		AdvancePointer(ptr, SizeOf(Board.StatCount));
 
 		for ix := 0 to Board.StatCount do
 			with Board.Stats[ix] do begin
 				Move(ptr^, Board.Stats[ix], SizeOf(TStat));
 				AdvancePointer(ptr, SizeOf(TStat));
+				StepX:=LEToN(StepX);
+				StepY:=LEToN(StepY);
+				Cycle:=LEToN(Cycle);
+				Follower:=LEToN(Follower);
+				Leader:=LEToN(Leader);
+				DataPos:=LEToN(DataPos);
+				DataLen:=LEToN(DataLen);
 				if DataLen > 0 then begin
 					GetMem(Data, DataLen);
 					Move(ptr^, Data^, DataLen);
@@ -708,6 +727,7 @@ function WorldLoad(filename, extension: TString50; titleOnly: boolean): boolean;
 		SidebarClearLine(5);
 		VideoWriteText(62, 5, $1F, 'Loading.....');
 
+		IOResult; { FIXME: why IOResult is not 0 at this point? }
 		Assign(f, filename + extension);
 		Reset(f, 1);
 
@@ -718,6 +738,7 @@ function WorldLoad(filename, extension: TString50; titleOnly: boolean): boolean;
 			if not DisplayIOError then begin
 				ptr := IoTmpBuf;
 				Move(ptr^, World.BoardCount, SizeOf(World.BoardCount));
+				World.BoardCount:=LEToN(World.BoardCount);
 				AdvancePointer(ptr, SizeOf(World.BoardCount));
 
 				if World.BoardCount < 0 then begin
@@ -727,12 +748,26 @@ function WorldLoad(filename, extension: TString50; titleOnly: boolean): boolean;
 						exit;
 					end else begin
 						Move(ptr^, World.BoardCount, SizeOf(World.BoardCount));
+						World.BoardCount:=LEToN(World.BoardCount);
 						AdvancePointer(ptr, SizeOf(World.BoardCount));
 					end;
 				end;
 
 				Move(ptr^, World.Info, SizeOf(World.Info));
 				AdvancePointer(ptr, SizeOf(World.Info));
+				with World.info do begin
+					Ammo:=LEToN(Ammo);
+					Gems:=LEToN(Gems);
+					Health:=LEToN(Health);
+					CurrentBoard:=LEToN(CurrentBoard);
+					Torches:=LEToN(Torches);
+					TorchTicks:=LEToN(TorchTicks);
+					EnergizerTicks:=LEToN(EnergizerTicks);
+					unk1:=LEToN(unk1);
+					Score:=LEToN(Score);
+					BoardTimeSec:=LEToN(BoardTimeSec);
+					BoardTimeHsec:=LEToN(BoardTimeHSec);
+				end;
 
 				if titleOnly then begin
 					World.BoardCount := 0;
@@ -743,6 +778,7 @@ function WorldLoad(filename, extension: TString50; titleOnly: boolean): boolean;
 				for boardId := 0 to World.BoardCount do begin
 					SidebarAnimateLoading;
 					BlockRead(f, World.BoardLen[boardId], 2);
+					World.BoardLen[boardId]:=LEToN(World.BoardLen[boardid]);
 					GetMem(World.BoardData[boardId], World.BoardLen[boardId]);
 					BlockRead(f, World.BoardData[boardId]^, World.BoardLen[boardId]);
 				end;

@@ -27,7 +27,7 @@
 unit TxtWind;
 
 interface
-	uses Video;
+	uses zztVideo;
 	const
 		MAX_TEXT_WINDOW_LINES = 1024;
 		MAX_RESOURCE_DATA_FILES = 24;

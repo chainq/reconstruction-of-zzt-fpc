@@ -72,7 +72,7 @@ interface
 	function InputConfigure: boolean;
 
 implementation
-uses Dos, Crt, Keys, Sounds;
+uses Dos, vidCrt, Keys, Keyboard, Sounds;
 
 const
 	PORT_JOYSTICK = $0201;
@@ -83,16 +83,16 @@ var
 
 function InputIsJoystickButtonPressed: boolean;
 	begin
-		InputIsJoystickButtonPressed := (Port[PORT_JOYSTICK] and $30) <> $30;
+{		InputIsJoystickButtonPressed := (Port[PORT_JOYSTICK] and $30) <> $30;}
 	end;
 
 procedure InputJoystickGetCoords(var x, y: integer);
-	var
-		startTicks: word;
+{	var
+		startTicks: word;}
 	begin
 		x := 0;
 		y := 0;
-		startTicks := TimerTicks;
+{		startTicks := TimerTicks;
 		Port[PORT_JOYSTICK] := 0;
 		repeat
 			x := x + (Port[PORT_JOYSTICK] and 1);
@@ -102,7 +102,7 @@ procedure InputJoystickGetCoords(var x, y: integer);
 		if (TimerTicks - startTicks) > 3 then begin
 			x := -1;
 			y := -1;
-		end;
+		end;}
 	end;
 
 function InputCalibrateJoystickPosition(msg: String; var x, y: integer): boolean;
@@ -194,16 +194,20 @@ procedure InputUpdate;
 	var
 		joyXraw, joyYraw: integer;
 		joyX, joyY: integer;
-		regs: Registers;
+		keyEvent: TKeyEvent;
+{		regs: Registers;}
 	begin
 		InputDeltaX := 0;
 		InputDeltaY := 0;
 		InputShiftPressed := false;
 		InputJoystickMoved := false;
-		while KeyPressed do begin
-			InputKeyPressed := ReadKey;
+		while PollKeyEvent <> 0 do begin
+			keyEvent:=GetKeyEvent;
+			keyEvent:=TranslateKeyEvent(keyEvent);
+			KeysLastEvent:=keyEvent;
+			InputKeyPressed := GetKeyEventChar(keyEvent);
 			if (InputKeyPressed = #0) or (InputKeyPressed = #1) or (InputKeyPressed = #2) then
-				InputKeyBuffer := InputKeyBuffer + Chr(Ord(ReadKey) or $80)
+				InputKeyBuffer := InputKeyBuffer + Chr((TKeyRecord(keyEvent).keyCode shr 8) or $80)
 			else
 				InputKeyBuffer := InputKeyBuffer + InputKeyPressed;
 		end;
@@ -271,10 +275,10 @@ procedure InputUpdate;
 				InputShiftAccepted := false;
 			end;
 		end else if InputMouseEnabled then begin
-			regs.AX := $0B;
+{			regs.AX := $0B;
 			Intr($33, regs);
 			InputMouseX := InputMouseX + Integer(regs.CX);
-			InputMouseY := InputMouseY + Integer(regs.DX);
+			InputMouseY := InputMouseY + Integer(regs.DX);}
 
 			if Abs(InputMouseX) > Abs(InputMouseY) then begin
 				if Abs(InputMouseX) > InputMouseActivationX then begin
@@ -294,19 +298,19 @@ procedure InputUpdate;
 				end;
 			end;
 
-			regs.AX := $03;
-			Intr($33, regs);
+{			regs.AX := $03;
+			Intr($33, regs);}
 
 			{ left mouse button }
-			if (regs.BX and 1) <> 0 then begin
+{			if (regs.BX and 1) <> 0 then begin
 				if not InputShiftAccepted then
 					InputShiftPressed := true;
 			end else begin
 				InputShiftAccepted := false;
-			end;
+			end;}
 
 			{ right/middle mouse button }
-			if (regs.BX and 6) <> 0 then begin
+{			if (regs.BX and 6) <> 0 then begin
 				if (InputDeltaX <> 0) or (InputDeltaY <> 0) then begin
 					InputMouseButtonX := InputDeltaX;
 					InputMouseButtonY := InputDeltaY;
@@ -317,7 +321,7 @@ procedure InputUpdate;
 			end else begin
 				InputMouseButtonX := 0;
 				InputMouseButtonY := 0;
-			end;
+			end;}
 		end;
 
 		if (InputDeltaX <> 0) or (InputDeltaY <> 0) then begin
@@ -327,13 +331,13 @@ procedure InputUpdate;
 	end;
 
 function InputInitMouse: boolean;
-	var
-		regs: Registers;
+{	var
+		regs: Registers;}
 	begin
-		regs.AX := 0;
+{		regs.AX := 0;
 		Intr($33, regs);
 		InputInitMouse := (regs.AX = 0);
-		InputInitMouse := true;
+		InputInitMouse := true;}
 	end;
 
 procedure InputInitDevices;

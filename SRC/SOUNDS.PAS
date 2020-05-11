@@ -164,6 +164,7 @@ function SoundHasTimeElapsed(var counter: integer; duration: integer): boolean;
 			SoundCheckTimeIntr;
 		end;
 
+		UseSystemTimeForElapsed:=true; { FIX ME: this a hack, because we don't have timer interrupts yet }
 		if UseSystemTimeForElapsed then begin
 			GetTime(hour, minute, sec, hSec);
 			hSecsTotal := sec * 100 + hSec;
@@ -266,10 +267,11 @@ function SoundParse(input: string): string;
 					noteDuration := (noteDuration * 3) div 2;
 					AdvanceInput;
 				end;
-				'3': begin
+{$WARNING FIX ME! - overlapping case not supported by FPC }
+{				'3': begin
 					noteDuration := noteDuration div 3;
 					AdvanceInput;
-				end;
+				end;}
 				'+': begin
 					if noteOctave < 6 then
 						noteOctave := noteOctave + 1;

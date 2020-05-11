@@ -26,6 +26,7 @@
 unit Keys;
 
 interface
+uses keyboard;
 	var
 		KeysRightShiftHeld: Boolean;
 		KeysLeftShiftHeld: Boolean;
@@ -33,23 +34,18 @@ interface
 		KeysCtrlHeld: Boolean;
 		KeysAltHeld: Boolean;
 		KeysNumLockHeld: Boolean;
+		KeysLastEvent: TKeyEvent;
 	procedure KeysUpdateModifiers;
 
 implementation
-uses Dos;
 
 procedure KeysUpdateModifiers;
-	var
-		regs: Registers;
 	begin
-		regs.AH := $02;
-		Intr($16, regs);
-		KeysRightShiftHeld := (regs.AL mod 2) = 1;
-		KeysLeftShiftHeld := ((regs.AL div 2) mod 2) = 1;
-		KeysCtrlHeld := ((regs.AL div 4) mod 2) = 1;
-		KeysAltHeld := ((regs.AL div 8) mod 2) = 1;
-		KeysNumLockHeld := ((regs.AL div 32) mod 2) = 1;
-		KeysShiftHeld := KeysRightShiftHeld or KeysLeftShiftHeld;
+		KeysRightShiftHeld:=(TKeyRecord(KeysLastEvent).ShiftState and kbRightShift) <> 0;
+		KeysLeftShiftHeld:=(TKeyRecord(KeysLastEvent).ShiftState and kbLeftShift) <> 0;
+		KeysCtrlHeld:=(TKeyRecord(KeysLastEvent).ShiftState and kbCtrl) <> 0;
+		KeysAltHeld:=(TKeyRecord(KeysLastEvent).ShiftState and kbAlt) <>0;
+		KeysShiftHeld:=KeysRightShiftHeld or KeysLeftShiftHeld;
 	end;
 
 begin
